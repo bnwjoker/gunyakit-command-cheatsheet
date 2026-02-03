@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 9100 --script pjl-ready-message $rhost && nc -nv $rhost 9100
+```
+
 ### Nmap
 
 ```shell

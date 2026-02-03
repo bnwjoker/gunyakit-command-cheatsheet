@@ -35,6 +35,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 502 --script modbus-discover --script-args modbus-discover.aggressive=true $rhost
+```
+
 ### Nmap
 
 ```shell

@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+curl -sk "https://$rhost:8089/services/server/info" --user admin:changeme
+```
+
 ### Nmap
 
 ```shell

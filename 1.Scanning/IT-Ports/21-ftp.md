@@ -20,6 +20,24 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 21 --script ftp-anon,ftp-syst,ftp-vsftpd-backdoor $rhost && echo quit | nc -vn $rhost 21
+```
+
+### Quick Anonymous Check (One-liner)
+
+```shell
+# Check anonymous login + list files
+echo -e "USER anonymous\nPASS anonymous\nPASWD\nLIST -la\nQUIT" | nc -vn $rhost 21
+
+# Nmap anonymous check
+nmap -p 21 --script ftp-anon,ftp-syst $rhost
+```
+
+### FTP Commands
+
 ```shell
 ftp $rhost
 >anonymous
@@ -28,6 +46,16 @@ ftp $rhost
 >binary #Set transmission to binary instead of ascii
 >ascii #Set transmission to ascii instead of binary
 >bye #exit
+```
+
+### Download All Files (One-liner)
+
+```shell
+# wget recursive download
+wget -m --no-passive ftp://anonymous:anonymous@$rhost -P ftp_loot/
+
+# lftp mirror (better for large directories)
+lftp -u anonymous,anonymous $rhost -e "mirror --verbose / ./ftp_loot; quit"
 ```
 
 ### Default Credential

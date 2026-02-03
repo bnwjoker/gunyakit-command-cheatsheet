@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+curl -s "http://$rhost:8086/ping" && curl -s "http://$rhost:8086/query?q=SHOW+DATABASES" | jq
+```
+
 ### Nmap
 
 ```shell

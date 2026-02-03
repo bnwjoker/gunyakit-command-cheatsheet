@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 3260 --script iscsi-info $rhost && iscsiadm -m discovery -t sendtargets -p $rhost
+```
+
 ### Nmap
 
 ```shell

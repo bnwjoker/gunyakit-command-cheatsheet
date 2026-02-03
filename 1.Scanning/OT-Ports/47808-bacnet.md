@@ -27,6 +27,12 @@ BACnet is used in:
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -sU -p 47808 --script bacnet-info $rhost
+```
+
 ### Nmap
 
 ```shell

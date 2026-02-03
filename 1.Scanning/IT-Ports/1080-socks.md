@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p1080 --script socks-auth-info $rhost && curl -x socks5://$rhost:1080 http://ifconfig.me
+```
+
 ### Nmap Scripts
 
 ```shell

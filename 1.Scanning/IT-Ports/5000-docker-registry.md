@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+curl -s http://$rhost:5000/v2/ && curl -s http://$rhost:5000/v2/_catalog | jq
+```
+
 ### Nmap Scripts
 
 ```shell

@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+echo 'stats' | nc -nv $rhost 11211 && echo 'stats items' | nc -nv $rhost 11211
+```
+
 ### Nmap
 
 ```shell

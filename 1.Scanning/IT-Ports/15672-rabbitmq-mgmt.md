@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+curl -su guest:guest http://$rhost:15672/api/overview | jq '.rabbitmq_version'
+```
+
 ### Nmap Scripts
 
 ```shell

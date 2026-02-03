@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -sU -p 69 --script tftp-enum $rhost && tftp $rhost -c get /etc/passwd 2>/dev/null
+```
+
 ### Nmap
 
 ```shell

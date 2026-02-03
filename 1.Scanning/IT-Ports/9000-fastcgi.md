@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -sV -p 9000 $rhost && nc -nv $rhost 9000
+```
+
 ### Nmap Scripts
 
 ```shell

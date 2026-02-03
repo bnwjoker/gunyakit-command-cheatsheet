@@ -19,65 +19,47 @@
 
 ## Enumeration
 
-### Nmap Scripts
+### Quick Check (One-liner)
 
 ```shell
-# Service detection
-nmap -p 53 -sV $rhost
-
-# DNS enumeration
-nmap -p 53 --script dns-brute $rhost
-nmap -p 53 --script dns-zone-transfer --script-args dns-zone-transfer.domain=$domain $rhost
-nmap -p 53 --script dns-srv-enum --script-args dns-srv-enum.domain=$domain $rhost
-nmap -p 53 --script dns-nsid $rhost
+dig axfr @$rhost $domain && nmap -p 53 --script dns-zone-transfer $rhost
 ```
 
-### DNS Lookup
+### Nmap Scripts (One-liner)
 
 ```shell
-# Forward lookup
-host www.$domain
-host -t mx $domain
-host -t txt $domain
-host -t ns $domain
+# All DNS scripts in one command
+nmap -p 53 -sV --script "dns-*" --script-args dns-zone-transfer.domain=$domain $rhost
+```
+
+### Zone Transfer (One-liner)
+
+```shell
+# Quick zone transfer attempt
+dig axfr @$rhost $domain && host -l $domain $rhost
+```
+
+### DNS Lookup (One-liner)
+
+```shell
+# All record types at once
+for t in A AAAA MX NS TXT SOA CNAME; do echo "=== $t ==="; dig +short $domain $t; done
 
 # Reverse lookup
-host $rhost
-
-# Query specific DNS server
-host www.$domain $rhost
+dig -x $rhost +short
 ```
 
-### Zone Transfer
+### Subdomain Enumeration (One-liner)
 
 ```shell
-# Using host
-host -l $domain $rhost
+# ffuf subdomain brute (fastest)
+ffuf -u http://$rhost -H "Host: FUZZ.$domain" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -mc 200,301,302 -c
 
-# Using dig
-dig axfr @$rhost $domain
+# gobuster DNS
+gobuster dns -d $domain -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -t 50
 
-# Using nslookup
-nslookup
-> server $rhost
-> set type=any
-> ls -d $domain
-```
-
-### Subdomain Enumeration
-
-```shell
 # Bash bruteforce
-for sub in $(cat subdomains.txt); do host $sub.$domain | grep -v "not found"; done
-
-# Using wfuzz
-wfuzz -c -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -H "Host: FUZZ.$domain" -u http://$rhost --hc 400,404,403
-
-# Using ffuf
-ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -H "Host: FUZZ.$domain" -u http://$rhost -ac
-
-# Using gobuster
-gobuster dns -d $domain -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+for sub in $(cat /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt); do host $sub.$domain | grep -v "not found"; done 2>/dev/null
 ```
 
 ---

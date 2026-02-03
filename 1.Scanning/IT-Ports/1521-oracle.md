@@ -10,20 +10,21 @@
 
 ## Enumeration
 
-### Nmap
+### Quick Check (One-liner)
 
 ```shell
-nmap -sV -sC -p 1521 $rhost
-nmap -p 1521 --script oracle-tns-version $rhost
-nmap -p 1521 --script oracle-sid-brute $rhost
-nmap -p 1521 --script oracle-brute $rhost
+# Nmap all Oracle scripts
+nmap -p 1521 --script "oracle-*" $rhost
+
+# TNS version + status
+tnscmd10g version -h $rhost && tnscmd10g status -h $rhost
 ```
 
-### Banner Grabbing
+### ODAT All-in-One (One-liner)
 
 ```shell
-tnscmd10g version -h $rhost
-tnscmd10g status -h $rhost
+# Full Oracle enumeration
+odat all -s $rhost -p 1521 2>/dev/null | tee oracle_enum.txt
 ```
 
 ---

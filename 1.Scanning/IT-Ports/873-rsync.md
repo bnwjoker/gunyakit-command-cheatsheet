@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+rsync --list-only rsync://$rhost/ && nmap -p 873 --script rsync-list-modules $rhost
+```
+
 ### Nmap
 
 ```shell

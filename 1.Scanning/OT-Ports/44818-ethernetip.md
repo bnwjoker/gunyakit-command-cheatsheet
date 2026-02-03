@@ -25,6 +25,12 @@ EtherNet/IP is used by:
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 44818 --script enip-info $rhost
+```
+
 ### Nmap
 
 ```shell

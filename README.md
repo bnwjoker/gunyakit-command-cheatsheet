@@ -142,7 +142,7 @@
 - [Password Attacks](3.AD-Exploit/3.2.Password-Attacks.md) - hashcat, John, Hydra, Kerbrute, mimikatz, NetExec
 - [Kerberos Attacks](3.AD-Exploit/3.3.Kerberos-Attacks.md) - ASREPRoast, Kerberoasting, Golden/Silver Tickets, DCSync, Constrained Delegation
 - [NTLM Relay & Responder](3.AD-Exploit/3.4.NTLM-Relay-and-Responder.md) - Responder setup, NTLM Relay attacks, Pass-the-Hash, Authentication Coercion
-- [AD CS Attacks](3.AD-Exploit/3.5.AD-CS-Attacks.md) - Certipy, ESC1-ESC8, PassTheCert, PKINIT, Golden Certificate
+- [AD CS Attacks](3.AD-Exploit/3.5.AD-CS-Attacks.md) - Certipy, ESC1-ESC15, PassTheCert, PKINIT, Golden Certificate
 - [Shadow Credentials](3.AD-Exploit/3.6.Shadow-Credentials.md) - pyWhisker, Whisker, msDS-KeyCredentialLink, PKINIT Auth
 - [Kerberos Delegation](3.AD-Exploit/3.7.Kerberos-Delegation.md) - Constrained Delegation, RBCD, S4U Attack Chain
 - [AD Enumeration Tools](3.AD-Exploit/3.8.AD-Enumeration-Tools.md) - bloodyAD, adPEAS, NetExec, Invoke-ADEnum, ADRecon
@@ -237,6 +237,7 @@
 | PrintSpoofer | Token impersonation | SeImpersonate privesc |
 | GodPotato | Token impersonation | Universal Potato exploit |
 | Chisel/Ligolo-ng | Tunneling | Port forwarding and pivoting |
+| xfreerdp3 | RDP client | Remote Desktop connection |
 | SQLMap | SQL Injection | Automated SQLi exploitation |
 | FFuF | Web fuzzer | Directory/parameter fuzzing |
 | tplmap | SSTI exploitation | Template injection automation |

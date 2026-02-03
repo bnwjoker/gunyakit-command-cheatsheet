@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 9042 --script cassandra-info $rhost && cqlsh $rhost 9042 -u cassandra -p cassandra -e "DESCRIBE KEYSPACES;"
+```
+
 ### Nmap
 
 ```shell

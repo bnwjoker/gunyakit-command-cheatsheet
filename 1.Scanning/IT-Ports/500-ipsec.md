@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+ike-scan -A $rhost && nmap -sU -p 500 --script ike-version $rhost
+```
+
 ### Nmap Scripts
 
 ```shell

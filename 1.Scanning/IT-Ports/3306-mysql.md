@@ -17,50 +17,43 @@
 
 ## Enumeration
 
-### Connect
+### Quick Check (One-liner)
 
 ```shell
-# Local connection
-mysql -u root -p
-
-# Remote connection
-mysql -u username -h $rhost -P 3306 -p
-
-# Execute query directly
-mysql -u username -p -e "SELECT @@version;"
-
-# Skip SSL
-mysql -h $rhost -u root -p --skip-ssl
+nmap -p 3306 --script mysql-info,mysql-enum $rhost && mysql -h $rhost -u root -e "SELECT @@version" 2>/dev/null
 ```
 
-### Basic SQL Queries
+### Quick Connection Test (One-liner)
 
 ```shell
-# Version
-SELECT @@version;
-SELECT VERSION();
+# Test login + get version
+mysql -h $rhost -u root -p -e "SELECT @@version; SHOW DATABASES;" 2>/dev/null
 
-# Databases
-SHOW DATABASES;
-SELECT SCHEMA_NAME FROM information_schema.SCHEMATA;
-
-# Current database
-SELECT DATABASE();
-
-# Tables
-SHOW TABLES;
-USE database_name;
-SELECT * FROM users;
+# Anonymous/no password check
+mysql -h $rhost -u root --skip-ssl -e "SELECT @@version;" 2>/dev/null && echo "[!] No password!"
 ```
 
-### Nmap Scripts
+### Nmap Scripts (One-liner)
 
 ```shell
-# Service detection
-nmap -p 3306 -sV $rhost
+# All MySQL scripts
+nmap -p 3306 --script "mysql-*" $rhost
 
-# Brute force
-nmap -p 3306 --script mysql-brute $rhost
+# Quick enum + brute
+nmap -p 3306 --script mysql-info,mysql-enum,mysql-brute $rhost
+```
+
+### Database Enumeration (One-liner)
+
+```shell
+# List all databases, tables, columns in one query
+mysql -h $rhost -u $user -p$pass -e "SELECT table_schema,table_name,column_name FROM information_schema.columns WHERE table_schema NOT IN ('mysql','information_schema','performance_schema')" 2>/dev/null
+
+# Find password columns
+mysql -h $rhost -u $user -p$pass -e "SELECT table_schema,table_name,column_name FROM information_schema.columns WHERE column_name LIKE '%pass%' OR column_name LIKE '%pwd%'" 2>/dev/null
+
+# Dump users table (common)
+mysql -h $rhost -u $user -p$pass -e "SELECT * FROM users" $database 2>/dev/null
 ```
 
 ### Database Enumeration

@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+curl -s "http://$rhost:9200" && curl -s "http://$rhost:9200/_cat/indices?v"
+```
+
 ### Nmap
 
 ```shell

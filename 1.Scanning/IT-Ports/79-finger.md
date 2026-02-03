@@ -11,6 +11,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+finger @$rhost && finger root@$rhost && finger admin@$rhost
+```
+
 ### Basic Connection
 
 ```shell

@@ -21,41 +21,30 @@
 
 ## Enumeration
 
-### Banner Grabbing
-
-> Get SMTP server banner
+### Quick Check (One-liner)
 
 ```shell
-nc -nv $rhost 25
-telnet $rhost 25
+# Banner + all SMTP scripts
+nmap -p 25 --script "smtp-*" -sV $rhost
+
+# Quick user enumeration
+smtp-user-enum -M VRFY -U /usr/share/seclists/Usernames/top-usernames-shortlist.txt -t $rhost 2>/dev/null
 ```
 
-> Using nmap
+### User Enumeration (One-liner)
 
 ```shell
-nmap -p 25 -sV $rhost
-nmap -p 25 --script=banner $rhost
+# VRFY method
+for user in root admin test guest info; do echo "VRFY $user" | nc -nv -w 2 $rhost 25 2>/dev/null | grep -v "^220\|^221\|^250 2"; done
+
+# smtp-user-enum all methods
+smtp-user-enum -M VRFY -U users.txt -t $rhost && smtp-user-enum -M EXPN -U users.txt -t $rhost && smtp-user-enum -M RCPT -U users.txt -t $rhost
 ```
 
-### Nmap Scripts
-
-> SMTP enumeration scripts
+### Open Relay Check (One-liner)
 
 ```shell
-# All SMTP scripts
-nmap -p 25 --script smtp-* $rhost
-
-# Check for open relay
 nmap -p 25 --script smtp-open-relay $rhost
-
-# Enumerate users
-nmap -p 25 --script smtp-enum-users --script-args smtp-enum-users.methods={VRFY,EXPN,RCPT} $rhost
-
-# Get server info
-nmap -p 25 --script smtp-commands $rhost
-
-# Check vulnerabilities
-nmap -p 25 --script smtp-vuln* $rhost
 ```
 
 ### smtp-user-enum

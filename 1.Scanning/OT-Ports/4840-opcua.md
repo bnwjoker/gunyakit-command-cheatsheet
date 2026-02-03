@@ -25,6 +25,12 @@ OPC UA (Unified Architecture) is an industrial communication protocol for:
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 4840 --script opcua-info $rhost
+```
+
 ### Nmap
 
 ```shell

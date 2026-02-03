@@ -17,30 +17,31 @@
 
 ## Enumeration
 
-### Connect
+### Quick Check (One-liner)
 
 ```shell
-# CLI connection
-redis-cli -h $rhost -p 6379
+# Check if Redis is open and get info
+redis-cli -h $rhost INFO server 2>/dev/null | head -10 && echo "[+] Redis accessible!"
 
-# With authentication
-redis-cli -h $rhost -a 'password'
-
-# Netcat
-nc -nv $rhost 6379
+# Check authentication requirement
+redis-cli -h $rhost CONFIG GET requirepass 2>/dev/null || echo "[!] Auth required or error"
 ```
 
-### Nmap Scripts
+### Nmap Scripts (One-liner)
 
 ```shell
-# Service detection
-nmap -p 6379 -sV $rhost
+# All Redis scripts
+nmap -p 6379 --script "redis-*" $rhost
+```
 
-# Redis info
-nmap -p 6379 --script redis-info $rhost
+### Basic Enumeration (One-liner)
 
-# Brute force
-nmap -p 6379 --script redis-brute $rhost
+```shell
+# Get all keys and config
+redis-cli -h $rhost -c "INFO; KEYS *; CONFIG GET dir; CONFIG GET dbfilename" 2>/dev/null
+
+# Dump all keys and values
+redis-cli -h $rhost KEYS "*" 2>/dev/null | xargs -I{} redis-cli -h $rhost GET {} 2>/dev/null
 ```
 
 ### Basic Commands

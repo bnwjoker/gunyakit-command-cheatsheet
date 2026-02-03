@@ -1,164 +1,234 @@
 # Port Scanning
 
 ## Table of Contents
+- [Host Discovery](#host-discovery)
 - [Nmap](#nmap)
 - [Masscan](#masscan)
 - [Rustscan](#rustscan)
 - [NetExec](#netexec)
 - [Tips](#tips)
 
+---
+
+## Host Discovery
+
+### Quick Check (One-liner)
+
+```shell
+# Quick network discovery + port scan
+nmap -sn $cidr | grep "Up" | awk '{print $5}' | xargs -I{} nmap -sC -sV -Pn {} -oN nmap_{}.txt
+```
+
+### Ping Sweep
+
+> ICMP ping sweep (find live hosts)
+
+```shell
+# Nmap ping sweep (one-liner)
+nmap -sn $cidr -oG - | grep "Up" | awk '{print $2}' | tee live_hosts.txt
+
+# Nmap ARP scan (local network only - most reliable)
+sudo nmap -sn -PR $cidr -oG - | grep "Up" | awk '{print $2}' | tee live_hosts.txt
+
+# fping (fast)
+fping -a -g $cidr 2>/dev/null | tee live_hosts.txt
+
+# Ping sweep with bash (ICMP)
+for i in {1..254}; do (ping -c1 -W1 192.168.1.$i &>/dev/null && echo "192.168.1.$i" &); done | tee live_hosts.txt
+```
+
+### ARP Discovery (Layer 2)
+
+```shell
+# arp-scan (most reliable on local network)
+sudo arp-scan -l | grep -v "^Interface\|^Starting\|packets" | awk '{print $1}' | tee live_hosts.txt
+
+# arp-scan specific range
+sudo arp-scan $cidr | awk '/([0-9a-f]{2}:){5}[0-9a-f]{2}/{print $1}' | tee live_hosts.txt
+
+# Netdiscover
+sudo netdiscover -r $cidr -P | awk '/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/{print $1}' | tee live_hosts.txt
+```
+
+### TCP/UDP Discovery (When ICMP Blocked)
+
+```shell
+# TCP SYN discovery on common ports
+nmap -sn -PS22,80,443,445 $cidr -oG - | grep "Up" | awk '{print $2}' | tee live_hosts.txt
+
+# TCP ACK discovery
+sudo nmap -sn -PA80,443 $cidr -oG - | grep "Up" | awk '{print $2}' | tee live_hosts.txt
+
+# UDP discovery
+sudo nmap -sn -PU53,161 $cidr -oG - | grep "Up" | awk '{print $2}' | tee live_hosts.txt
+
+# Combined TCP + UDP + ICMP
+sudo nmap -sn -PE -PS22,80,443 -PU53,161 $cidr -oG - | grep "Up" | awk '{print $2}' | tee live_hosts.txt
+```
+
+### NetExec Host Discovery
+
+```shell
+# SMB discovery (Windows hosts)
+nxc smb $cidr --gen-relay-list live_smb.txt 2>/dev/null && cat live_smb.txt
+
+# Multiple protocols one-liner
+for proto in smb rdp winrm ssh; do nxc $proto $cidr 2>/dev/null | grep -E "^\d|SMB|RDP|WINRM|SSH" | awk '{print $2}' | sort -u; done | sort -u | tee live_hosts.txt
+```
+
+### Quick Reference - Host Discovery
+
+| Method | Command | Best For |
+|--------|---------|----------|
+| ICMP Ping | `nmap -sn $cidr` | General discovery |
+| ARP Scan | `sudo arp-scan -l` | Local network (most reliable) |
+| TCP SYN | `nmap -sn -PS22,80,443 $cidr` | When ICMP blocked |
+| TCP ACK | `nmap -sn -PA80 $cidr` | Bypass stateless firewall |
+| UDP | `nmap -sn -PU53,161 $cidr` | Find DNS/SNMP hosts |
+| NetExec | `nxc smb $cidr` | Windows/AD environments |
+
+---
+
 ## Nmap
 
-### Basic Scan
+### Basic Scan (One-liner)
 
-> 1000 Port scan
-```shell
-sudo nmap -oN initial_scan.nmap $rhost
-```
+> Quick scan + version detection (one-liner)
 
 ```shell
-port=$(grep 'open' initial_scan.nmap | awk '{print $1}' | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//')
+sudo nmap -sV -sC -oN scan.nmap $rhost
 ```
+
+> Full port scan then detailed scan (one-liner)
 
 ```shell
-sudo nmap -sV -sC -oN detail_scan.nmap -p $port $rhost
+sudo nmap -p- --min-rate 10000 $rhost -oG - | grep '/open' | awk -F'/' '{print $1}' | awk '{print $NF}' | tr '\n' ',' | sed 's/,$//' | xargs -I{} sudo nmap -sV -sC -p {} -oN detail.nmap $rhost
 ```
 
-> Full port scan step 65535 Port
-```shell
-sudo nmap -p- -T4 -oN initial_scan_full.nmap $rhost 
-```
+> Full scan with auto port extraction (traditional)
 
 ```shell
-port=$(grep 'open' initial_scan_full.nmap | awk '{print $1}' | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//')
+port=$(sudo nmap -p- --min-rate 10000 $rhost | grep '^[0-9]' | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//') && sudo nmap -sV -sC -p $port -oN scan.nmap $rhost
 ```
+
+### UDP Scan (One-liner)
+
+> Top 100 UDP ports with version detection
 
 ```shell
-sudo nmap -sV -sC -oN detail_scan_full.nmap -p $port $rhost
+sudo nmap -sU --top-ports 100 -sV -oN udp.nmap $rhost
 ```
 
-> Fast full port scan with min-rate
-```shell
-sudo nmap -p- --min-rate 10000 -oN initial_scan_fast.nmap $rhost
-```
-
-### UDP Scan
-
-> 100 UDP Port Scan
-```shell
-sudo nmap -sU --top-ports 100 -oN initial_scan_100udp.nmap $rhost
-```
+> Quick UDP scan common ports
 
 ```shell
-port=$(grep 'open' initial_scan_100udp.nmap | awk '{print $1}' | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//')
+sudo nmap -sU -p 53,67,68,69,123,161,162,500,514,1900 -sV -oN udp_common.nmap $rhost
 ```
+
+### CIDR Scan (One-liner)
+
+> Find hosts with specific port open
 
 ```shell
-sudo nmap -sU -sV -sC -oN detail_scan_100udp.nmap -p $port $rhost
+nmap -p 445 --open $cidr -oG - | grep '/open' | awk '{print $2}' | tee smb_hosts.txt
 ```
 
-### CIDR Scan
-
-> CIDR Port Scan
-```shell
-sudo nmap -p 445 -oN initial_port_cidr_scan.nmap $cidr
-```
+> Scan multiple ports and extract live hosts
 
 ```shell
-grep -A 3 'open' initial_port_cidr_scan.nmap | grep 'for' | awk  '{print$5}'
+nmap -p 22,80,443,445,3389 --open $cidr -oG - | grep '/open' | awk '{print $2}' | sort -u | tee live_services.txt
 ```
 
-### Vulnerability Scan
+### Vulnerability Scan (One-liner)
 
-> Nmap vulnerability scripts
 ```shell
-sudo nmap -sV --script vuln -oN vuln_scan.nmap $rhost
+sudo nmap -sV --script vuln -oN vuln.nmap $rhost
 ```
 
-> Safe scripts for enumeration
+> Safe enumeration scripts
+
 ```shell
-sudo nmap -sV -sC --script "safe and not intrusive" -oN safe_scan.nmap -p $port $rhost
+sudo nmap -sV --script "safe and not brute" -oN safe.nmap $rhost
 ```
 
-### Firewall Evasion
+### Firewall Evasion (One-liner)
 
-> Skip host discovery (when ICMP is blocked)
+> Skip host discovery + full scan
+
 ```shell
-sudo nmap -Pn -p- -oN initial_scan_pn.nmap $rhost
+sudo nmap -Pn -p- --min-rate 10000 -oN pn_scan.nmap $rhost
 ```
 
-> Fragment packets
+> Fragment packets + decoys
+
 ```shell
-sudo nmap -f -p- -oN initial_scan_frag.nmap $rhost
+sudo nmap -f -D RND:10 -p 80,443,445 $rhost
 ```
 
-> Use decoys
-```shell
-sudo nmap -D RND:10 -p 80,443 $rhost
-```
+> Source port 53 (DNS - often allowed)
 
-> Source port manipulation
 ```shell
 sudo nmap --source-port 53 -p- $rhost
 ```
 
-## Masscan
+## Masscan (One-liner)
 
-> Fast port scan (entire port range)
+> Full port scan + pipe to nmap
+
 ```shell
-sudo masscan -p1-65535 $rhost --rate=1000 -oL masscan_output.txt
+sudo masscan -p1-65535 $rhost --rate=1000 -oL - 2>/dev/null | grep 'open' | cut -d' ' -f3 | sort -n | uniq | tr '\n' ',' | sed 's/,$//' | xargs -I{} sudo nmap -sV -sC -p {} -oN mass_detail.nmap $rhost
 ```
 
-> Common ports only
+> Quick common ports
+
 ```shell
-sudo masscan -p21,22,23,25,53,80,110,139,443,445,3306,3389,5985,8080 $rhost --rate=1000 -oL masscan_output.txt
+sudo masscan -p21,22,23,25,53,80,110,139,443,445,3306,3389,5985,8080 $rhost --rate=1000 2>/dev/null | tee masscan.txt
 ```
 
-> CIDR range scan
+> CIDR range scan (one-liner with output)
+
 ```shell
-sudo masscan -p80,443 $cidr --rate=10000 -oL masscan_cidr.txt
+sudo masscan -p80,443,445 $cidr --rate=10000 2>/dev/null | awk '/open/{print $6}' | sort -u | tee mass_hosts.txt
 ```
 
-> Parse masscan output for nmap
-```shell
-ports=$(grep 'open' masscan_output.txt | cut -d' ' -f3 | sort -n | uniq | tr '\n' ',' | sed 's/,$//')
-sudo nmap -sV -sC -p $ports -oN detail_scan.nmap $rhost
-```
-
-## Rustscan
+## Rustscan (One-liner)
 
 > Fast scan with nmap integration
+
 ```shell
-rhost="192.168.1.1" && rustscan -a "$rhost" --ulimit 5000 -- -sV -sC -oN initial_scan.rust
+rustscan -a $rhost --ulimit 5000 -- -sV -sC -oN rust_scan.nmap
 ```
 
-> Scan specific ports
+> Greppable output for scripting
+
 ```shell
-rustscan -a $rhost -p 22,80,443 -- -sV -sC
+rustscan -a $rhost --ulimit 5000 -g 2>/dev/null | tr ',' '\n'
 ```
 
-> Scan with greppable output
+> Batch scan from file
+
 ```shell
-rustscan -a $rhost --ulimit 5000 -g
+rustscan -a $(cat live_hosts.txt | tr '\n' ',') --ulimit 5000 -- -sV -oN batch_scan.nmap
 ```
 
-> Scan CIDR range
+## NetExec (One-liner)
+
+> Multi-protocol discovery
+
 ```shell
-rustscan -a $cidr --ulimit 5000 -- -sV
+for p in smb ldap winrm mssql rdp ssh ftp; do echo "=== $p ===" && nxc $p $cidr 2>/dev/null | grep -v "^\[" | head -20; done | tee nxc_discovery.txt
 ```
 
-## NetExec
-
-> smb (445) , ldap (389) , winrm (5985) , mssql (1433) , ssh (22) , ftp (21) , rdp (3389) , wmi (5985)
+> SMB signing check (for relay attacks)
 
 ```shell
-for proto in smb ldap winrm mssql rdp ssh ftp; do
-    if [[ "$proto" == "smb" || "$proto" == "mssql" || "$proto" == "winrm" ]]; then
-        nxc $proto $cidr -u '' -p '' --local-auth --continue-on-success --no-bruteforce | tee -a nxc_$proto.txt
-    else
-        nxc $proto $cidr -u '' -p '' --continue-on-success --no-bruteforce | tee -a nxc_$proto.txt
-    fi
-done
+nxc smb $cidr --gen-relay-list relay_targets.txt 2>/dev/null
+```
+
+> Quick Windows enumeration
+
+```shell
+nxc smb $rhost -u '' -p '' --shares --users --groups 2>/dev/null
 ```
 
 ## Tips

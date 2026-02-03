@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+curl -s "http://$rhost:631/printers" && nmap -p 631 --script cups-info,cups-queue-info $rhost
+```
+
 ### Nmap
 
 ```shell

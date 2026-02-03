@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+echo "test" | nc $rhost 7 && echo "Echo service responds"
+```
+
 ### Banner Grabbing
 
 ```shell

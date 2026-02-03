@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -sV -sC -p 1414 $rhost && nc -vn $rhost 1414
+```
+
 ### Nmap Scripts
 
 ```shell

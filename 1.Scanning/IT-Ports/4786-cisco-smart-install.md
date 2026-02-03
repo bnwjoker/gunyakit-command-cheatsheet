@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -sV -p 4786 $rhost && echo 'Smart Install vulnerable - use SIET'
+```
+
 ### Nmap Scripts
 
 ```shell

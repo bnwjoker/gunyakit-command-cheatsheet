@@ -10,6 +10,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -sV -p 49 --version-intensity 5 $rhost
+```
+
 ### Nmap Scripts
 
 ```shell

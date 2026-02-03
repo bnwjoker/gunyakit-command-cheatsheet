@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 1099 --script rmi-dumpregistry,rmi-vuln-classloader $rhost
+```
+
 ### Nmap
 
 ```shell

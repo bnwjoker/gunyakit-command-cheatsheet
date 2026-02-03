@@ -11,6 +11,12 @@
 
 ## Overview
 
+### Quick Check (One-liner)
+
+```shell
+nmap -sV -p 512,513,514 $rhost && rlogin -l root $rhost 2>/dev/null
+```
+
 | Port | Service | Description |
 | :--- | :--- | :--- |
 | 512 | rexec | Remote execution (requires password) |

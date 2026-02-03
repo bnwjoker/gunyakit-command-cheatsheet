@@ -12,26 +12,21 @@
 
 ## Enumeration
 
-### Nmap
+### Quick Check (One-liner)
 
 ```shell
-# Basic scan
-nmap -sV -p 27017 $rhost
+# Nmap all MongoDB scripts
+nmap -p 27017 --script "mongodb-*" -sV $rhost
 
-# Script scan
-nmap -sV --script mongo* -p 27017 $rhost
-
-# MongoDB info
-nmap -sV --script mongodb-info -p 27017 $rhost
-
-# Check for databases
-nmap -sV --script mongodb-databases -p 27017 $rhost
+# Check anonymous access
+mongosh "mongodb://$rhost:27017" --eval "db.adminCommand('listDatabases')" 2>/dev/null && echo "[+] No auth!"
 ```
 
-### Banner Grab
+### Using Docker (One-liner)
 
 ```shell
-nc -nv $rhost 27017
+# Connect with Docker mongo client
+docker run -it --rm mongo:3.6 mongo $rhost:27017 --eval "db.adminCommand('listDatabases')"
 ```
 
 ---

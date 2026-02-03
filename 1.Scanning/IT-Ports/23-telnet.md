@@ -10,53 +10,26 @@
 
 ## Enumeration
 
-### Nmap
+### Quick Check (One-liner)
 
 ```shell
-nmap -sV -sC -p 23 $rhost
-nmap -p 23 --script telnet-brute $rhost
-nmap -p 23 --script telnet-encryption $rhost
-nmap -p 23 --script telnet-ntlm-info $rhost
-```
+# Nmap all telnet scripts
+nmap -p 23 --script "telnet-*" -sV $rhost
 
-### Banner Grabbing
-
-```shell
-# Netcat
-nc -nv $rhost 23
-
-# Telnet
-telnet $rhost 23
-
-# Nmap
-nmap -p 23 --script banner $rhost
+# Quick banner grab
+echo -e "\n" | nc -nvw 3 $rhost 23 2>&1 | head -5
 ```
 
 ---
 
-## Brute Force
-
-### Hydra
+## Brute Force (One-liner)
 
 ```shell
-hydra -l admin -P /usr/share/wordlists/rockyou.txt telnet://$rhost
-hydra -L users.txt -P /usr/share/wordlists/rockyou.txt telnet://$rhost
-```
+# Hydra brute force
+hydra -l admin -P /usr/share/wordlists/rockyou.txt -f -t 4 telnet://$rhost
 
-### Ncrack
-
-```shell
-ncrack -p 23 --user admin -P /usr/share/wordlists/rockyou.txt $rhost
-```
-
-### Metasploit
-
-```shell
-use auxiliary/scanner/telnet/telnet_login
-set RHOSTS $rhost
-set USER_FILE users.txt
-set PASS_FILE /usr/share/wordlists/rockyou.txt
-run
+# Metasploit
+msfconsole -q -x "use auxiliary/scanner/telnet/telnet_login; set RHOSTS $rhost; set USER_FILE users.txt; set PASS_FILE /usr/share/wordlists/rockyou.txt; run; exit"
 ```
 
 ---

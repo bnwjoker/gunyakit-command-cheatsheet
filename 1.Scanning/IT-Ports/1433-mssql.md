@@ -28,56 +28,41 @@
 
 ## Enumeration
 
-### Impacket
+### Quick Check (One-liner)
 
 ```shell
-# Windows authentication
-impacket-mssqlclient DOMAIN/user:password@$rhost -windows-auth
+# Check MSSQL + get version
+nxc mssql $rhost -u 'sa' -p 'sa' --local-auth -q "SELECT @@version" 2>/dev/null || echo "Auth required"
 
-# SQL authentication
-impacket-mssqlclient sa:password@$rhost
+# Nmap all scripts
+nmap -p 1433 --script "ms-sql-*" $rhost
+```
+
+### Impacket (One-liner)
+
+```shell
+# SQL auth + execute query
+impacket-mssqlclient sa:'password'@$rhost -q "SELECT @@version; SELECT name FROM sys.databases;"
+
+# Windows auth
+impacket-mssqlclient $domain/$user:'password'@$rhost -windows-auth
 
 # Pass-the-Hash
-impacket-mssqlclient user@$rhost -hashes :NTHASH
+impacket-mssqlclient $user@$rhost -hashes :$ntlm_hash -windows-auth
 ```
 
-### sqsh
+### NetExec (One-liner)
 
 ```shell
-# SQL authentication
-sqsh -S $rhost -U sa -P password
+# List databases
+nxc mssql $rhost -u '$user' -p '$pass' --local-auth -q "SELECT name FROM sys.databases"
 
-# Windows authentication
-sqsh -S $rhost -U DOMAIN\\username -P password
+# Check sysadmin
+nxc mssql $rhost -u '$user' -p '$pass' --local-auth -q "SELECT IS_SRVROLEMEMBER('sysadmin')"
+
+# List permissions
+nxc mssql $rhost -u '$user' -p '$pass' --local-auth -q "SELECT * FROM sys.server_permissions;"
 ```
-
-### Basic SQL Queries
-
-```shell
-SELECT @@version;
-SELECT name FROM sys.databases;
-SELECT * FROM master..sysusers;
-SELECT name FROM master.sys.server_principals;
-SELECT IS_SRVROLEMEMBER('sysadmin');
-```
-
-### NetExec
-
-```shell
-nxc mssql $rhost -u '' -p '' --local-auth --continue-on-success --no-bruteforce
-```
-
-- List Database
-
-    ```shell
-    nxc mssql $rhost -u 'user' -p 'pass' --local-auth -q "SELECT name FROM sys.databases;"
-    ```
-
-- List Permission
-
-    ```shell
-    nxc mssql $rhost -u 'user' -p 'pass' --local-auth -q "SELECT * FROM sys.server_permissions;"
-    ```
 
 ### Nmap Scripts
 

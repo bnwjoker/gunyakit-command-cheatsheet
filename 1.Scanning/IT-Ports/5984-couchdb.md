@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+curl -s "http://$rhost:5984/" && curl -s "http://$rhost:5984/_all_dbs"
+```
+
 ### Nmap
 
 ```shell

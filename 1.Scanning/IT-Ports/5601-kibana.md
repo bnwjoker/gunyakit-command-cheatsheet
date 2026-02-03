@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+curl -s "http://$rhost:5601/api/status" | jq '.version'
+```
+
 ### Nmap
 
 ```shell

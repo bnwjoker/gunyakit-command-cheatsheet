@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 554 --script rtsp-methods,rtsp-url-brute $rhost
+```
+
 ### Nmap
 
 ```shell

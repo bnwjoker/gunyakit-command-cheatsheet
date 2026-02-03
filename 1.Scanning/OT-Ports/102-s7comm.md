@@ -26,6 +26,12 @@ S7comm is used by:
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 102 --script s7-info $rhost
+```
+
 ### Nmap
 
 ```shell

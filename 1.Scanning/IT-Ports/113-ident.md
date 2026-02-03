@@ -9,6 +9,12 @@
 
 ## Enumeration
 
+### Quick Check (One-liner)
+
+```shell
+nmap -p 113 --script auth-owners $rhost && echo '22, 22' | nc -nv $rhost 113
+```
+
 ### Nmap
 
 ```shell

