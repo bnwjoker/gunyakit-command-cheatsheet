@@ -49,7 +49,7 @@ nmap -sC -sV -Pn $rhost -oN quick.nmap &
 nmap -p- --min-rate 10000 $rhost -oN allports.nmap
 
 # Step 2: Extract open ports and detailed scan
-ports=$(grep -oP '\d+(?=/open)' allports.nmap | tr '\n' ',' | sed 's/,$//')
+ports=$(awk -F/ '/open/ {print $1}' allports.nmap | tr '\n' ',' | sed 's/,$//')
 nmap -sC -sV -p $ports $rhost -oN detail.nmap
 
 # Step 3: UDP scan (background)
@@ -394,14 +394,17 @@ sudo nmap --script "vuln and safe" -p $port $rhost
 ### Extract Open Ports from Nmap
 
 ```shell
+# From normal output (-oN) - RECOMMENDED
+grep -oP '^\d+(?=/tcp.*open)' scan.nmap | tr '\n' ',' | sed 's/,$//'
+
+# Alternative using cut
+grep "^[0-9]" scan.nmap | grep open | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//'
+
 # From greppable output (-oG)
 grep -oP '\d+/open' scan.gnmap | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//'
 
-# From normal output (-oN)
-grep "^[0-9]" scan.nmap | grep open | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//'
-
 # One-liner: Scan and extract ports
-ports=$(sudo nmap -p- --min-rate 10000 -Pn $rhost | grep "^[0-9]" | cut -d'/' -f1 | tr '\n' ',' | sed 's/,$//')
+ports=$(sudo nmap -p- --min-rate 10000 -Pn $rhost | grep -oP '^\d+(?=/tcp.*open)' | tr '\n' ',' | sed 's/,$//')
 echo $ports
 ```
 
@@ -414,7 +417,8 @@ if [ -z "$1" ]; then
     echo "Usage: $0 <nmap_output_file>"
     exit 1
 fi
-grep -oP '\d+(?=/open)' "$1" | sort -n | uniq | tr '\n' ',' | sed 's/,$/\n/'
+# Works with -oN normal output format (e.g., "80/tcp open http")
+grep -oP '^\d+(?=/tcp.*open)' "$1" | sort -n | uniq | tr '\n' ',' | sed 's/,$/\n/'
 ```
 
 ### Convert Nmap XML to Other Formats

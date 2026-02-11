@@ -21,10 +21,10 @@
 
 ```shell
 # Check if Redis is open and get info
-redis-cli -h $rhost INFO server 2>/dev/null | head -10 && echo "[+] Redis accessible!"
+redis-cli -h $rhost INFO server 2>/dev/null | head -10 && echo '[+] Redis accessible!'
 
 # Check authentication requirement
-redis-cli -h $rhost CONFIG GET requirepass 2>/dev/null || echo "[!] Auth required or error"
+redis-cli -h $rhost CONFIG GET requirepass 2>/dev/null || echo '[!] Auth required or error'
 ```
 
 ### Nmap Scripts (One-liner)
@@ -38,7 +38,7 @@ nmap -p 6379 --script "redis-*" $rhost
 
 ```shell
 # Get all keys and config
-redis-cli -h $rhost -c "INFO; KEYS *; CONFIG GET dir; CONFIG GET dbfilename" 2>/dev/null
+printf "INFO\nKEYS *\nCONFIG GET dir\nCONFIG GET dbfilename\nCONFIG GET requirepass\n" | redis-cli -h $rhost
 
 # Dump all keys and values
 redis-cli -h $rhost KEYS "*" 2>/dev/null | xargs -I{} redis-cli -h $rhost GET {} 2>/dev/null
